@@ -27,18 +27,28 @@ namespace physicallayer {
 class INET_API DipoleAntenna : public AntennaBase
 {
   protected:
-    m length;
-
-  protected:
     virtual void initialize(int stage) override;
+
+    class AntennaGain : public IAntennaGain
+    {
+      public:
+        AntennaGain(m length = m(NaN));
+        virtual IAntennaGain *duplicate() const override { return new AntennaGain(*this); }
+        virtual m getLength() const { return length; }
+        virtual double getMaxGain() const override { return 1.5; }
+        virtual double computeGain(const EulerAngles direction) const override;
+
+      protected:
+        m length;
+    };
+
+    AntennaGain gain;
 
   public:
     DipoleAntenna();
 
     virtual std::ostream& printToStream(std::ostream& stream, int level) const override;
-    virtual m getLength() const { return length; }
-    virtual double getMaxGain() const override { return 1.5; }
-    virtual double computeGain(const EulerAngles direction) const override;
+    virtual const IAntennaGain *getGain() const override { return &gain; }
 };
 
 } // namespace physicallayer

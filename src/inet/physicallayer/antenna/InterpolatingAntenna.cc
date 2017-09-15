@@ -24,9 +24,7 @@ namespace physicallayer {
 Define_Module(InterpolatingAntenna);
 
 InterpolatingAntenna::InterpolatingAntenna() :
-    AntennaBase(),
-    minGain(NaN),
-    maxGain(NaN)
+    AntennaBase()
 {
 }
 
@@ -34,9 +32,9 @@ void InterpolatingAntenna::initialize(int stage)
 {
     AntennaBase::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
-        parseMap(elevationGainMap, par("elevationGains"));
-        parseMap(headingGainMap, par("headingGains"));
-        parseMap(bankGainMap, par("bankGains"));
+        gain.parameters.parseElevationGains(par("elevationGains"));
+        gain.parameters.parseHeadingGains(par("headingGains"));
+        gain.parameters.parseBankGains(par("bankGains"));
     }
 }
 
@@ -44,11 +42,11 @@ std::ostream& InterpolatingAntenna::printToStream(std::ostream& stream, int leve
 {
     stream << "InterpolatingAntenna";
     if (level <= PRINT_LEVEL_DETAIL)
-        stream << ", maxGain = " << maxGain;
+        stream << ", maxGain = " << gain.getMaxGain();
     return AntennaBase::printToStream(stream, level);
 }
 
-void InterpolatingAntenna::parseMap(std::map<double, double>& gainMap, const char *text)
+void InterpolatingAntenna::AntennaParameters::parseMap(std::map<double, double>& gainMap, const char *text)
 {
     cStringTokenizer tokenizer(text);
     const char *firstAngle = tokenizer.nextToken();
@@ -76,7 +74,12 @@ void InterpolatingAntenna::parseMap(std::map<double, double>& gainMap, const cha
     }
 }
 
-double InterpolatingAntenna::computeGain(const std::map<double, double>& gainMap, double angle) const
+InterpolatingAntenna::AntennaGain::AntennaGain(const AntennaParameters& params) :
+    parameters(params)
+{
+}
+
+double InterpolatingAntenna::AntennaGain::computeGain(const std::map<double, double>& gainMap, double angle) const
 {
     angle = fmod(angle, 2 * M_PI);
     if (angle < 0.0) angle += 2 * M_PI;
@@ -99,11 +102,11 @@ double InterpolatingAntenna::computeGain(const std::map<double, double>& gainMap
     }
 }
 
-double InterpolatingAntenna::computeGain(EulerAngles direction) const
+double InterpolatingAntenna::AntennaGain::computeGain(EulerAngles direction) const
 {
-    return computeGain(headingGainMap, direction.alpha) *
-           computeGain(elevationGainMap, direction.beta) *
-           computeGain(bankGainMap, direction.gamma);
+    return computeGain(parameters.getHeadingGains(), direction.alpha) *
+           computeGain(parameters.getElevationGains(), direction.beta) *
+           computeGain(parameters.getBankGains(), direction.gamma);
 }
 
 } // namespace physicallayer

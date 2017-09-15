@@ -26,12 +26,22 @@ namespace physicallayer {
 
 class INET_API IsotropicAntenna : public AntennaBase
 {
+  protected:
+    class AntennaGain : public IAntennaGain
+    {
+      public:
+        virtual IAntennaGain *duplicate() const override { return new AntennaGain(*this); }
+        virtual double getMaxGain() const override { return 1; }
+        virtual double computeGain(const EulerAngles direction) const override { return 1; }
+    };
+
+    AntennaGain gain;
+
   public:
     IsotropicAntenna();
 
     virtual std::ostream& printToStream(std::ostream& stream, int level) const override;
-    virtual double getMaxGain() const override { return 1; }
-    virtual double computeGain(const EulerAngles direction) const override { return 1; }
+    virtual const IAntennaGain* getGain() const override { return &gain; }
 };
 
 } // namespace physicallayer

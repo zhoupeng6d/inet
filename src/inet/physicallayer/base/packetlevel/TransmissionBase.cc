@@ -26,6 +26,7 @@ TransmissionBase::TransmissionBase(const IRadio *transmitter, const cPacket *mac
     id(nextId++),
     radioMedium(transmitter->getMedium()),
     transmitterId(transmitter->getId()),
+    transmitterGain(transmitter->getAntenna()->getGain()->duplicate()),
     macFrame(macFrame),
     startTime(startTime),
     endTime(endTime),

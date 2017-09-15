@@ -22,6 +22,7 @@
 #include "inet/common/geometry/common/EulerAngles.h"
 #include "inet/common/Units.h"
 #include "inet/physicallayer/contract/bitlevel/ISignalAnalogModel.h"
+#include "inet/physicallayer/contract/packetlevel/IAntennaGain.h"
 #include "inet/physicallayer/contract/packetlevel/IPrintableObject.h"
 #include "inet/physicallayer/contract/packetlevel/IRadioSignal.h"
 
@@ -61,6 +62,11 @@ class INET_API ITransmission : public IPrintableObject
      * radio channel.
      */
     virtual int getTransmitterId() const = 0;
+
+    /**
+     * Returns the gain of the transmitting antenna.
+     */
+    virtual const IAntennaGain *getTransmitterAntennaGain() const = 0;
 
     /**
      * Returns the PHY frame corresponding to this transmission. This function

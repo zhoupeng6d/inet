@@ -27,24 +27,56 @@ namespace physicallayer {
 class INET_API InterpolatingAntenna : public AntennaBase
 {
   protected:
-    double minGain;
-    double maxGain;
-    std::map<double, double> elevationGainMap;
-    std::map<double, double> headingGainMap;
-    std::map<double, double> bankGainMap;
+    class AntennaParameters
+    {
+      protected:
+        double minGain = NaN;
+        double maxGain = NaN;
+        std::map<double, double> elevationGainMap;
+        std::map<double, double> headingGainMap;
+        std::map<double, double> bankGainMap;
+
+      protected:
+        virtual void parseMap(std::map<double, double>& gainMap, const char *text);
+
+      public:
+        virtual double getMinGain() const { return minGain; }
+        virtual double getMaxGain() const { return maxGain; }
+        virtual const std::map<double, double>& getElevationGains() const { return elevationGainMap; }
+        virtual const std::map<double, double>& getHeadingGains() const { return headingGainMap; }
+        virtual const std::map<double, double>& getBankGains() const { return bankGainMap; }
+        virtual void parseElevationGains(const char *text) { parseMap(elevationGainMap, text); }
+        virtual void parseHeadingGains(const char *text) { parseMap(headingGainMap, text); }
+        virtual void parseBankGains(const char *text) { parseMap(bankGainMap, text); }
+    };
+
+    class AntennaGain : public IAntennaGain
+    {
+      protected:
+        AntennaParameters parameters;
+
+      public:
+        AntennaGain() = default;
+        AntennaGain(const AntennaParameters&);
+        virtual IAntennaGain *duplicate() const override { return new AntennaGain(*this); }
+        virtual double getMinGain() const { return parameters.getMinGain(); }
+        virtual double getMaxGain() const override { return parameters.getMaxGain(); }
+        virtual double computeGain(const std::map<double, double>& gainMap, double angle) const;
+        virtual double computeGain(const EulerAngles direction) const override;
+
+        friend class InterpolatingAntenna;
+    };
+
+    AntennaGain gain;
 
   protected:
     virtual void initialize(int stage) override;
-    virtual void parseMap(std::map<double, double>& gainMap, const char *text);
-    virtual double computeGain(const std::map<double, double>& gainMap, double angle) const;
 
   public:
     InterpolatingAntenna();
 
     virtual std::ostream& printToStream(std::ostream& stream, int level) const override;
-    virtual double getMinGain() const { return minGain; }
-    virtual double getMaxGain() const override { return maxGain; }
-    virtual double computeGain(const EulerAngles direction) const override;
+    virtual const IAntennaGain *getGain() const override { return &gain; }
 };
 
 } // namespace physicallayer
