@@ -71,8 +71,11 @@ endif
 #
 WITH_VISUALIZERS := $(shell (cd .. && ./inet_featuretool -q isenabled visualization && echo enabled) )
 ifeq ($(WITH_VISUALIZERS), enabled)
+  ifeq ($(WITH_OSG), yes)
+      OMNETPP_LIBS += -lOpenThreads -losg -losgText -losgDB
+  endif
   ifeq ($(WITH_OSGEARTH), yes)
-      OMNETPP_LIBS += -lOpenThreads -losg -losgText -losgDB -losgEarth -losgEarthUtil
+      OMNETPP_LIBS += -losgEarth -losgEarthUtil
   endif
 endif
 
